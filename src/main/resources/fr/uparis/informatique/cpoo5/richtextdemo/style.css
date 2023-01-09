@@ -1,7 +1,0 @@
-.red { -fx-fill: red; }
-
-.green { -fx-fill: green; }
-
-.black { -fx-fill: black; }
-
-.item_selected { -fx-underline: true; -fx-fill:red; -fx-font-size: 20; -fx-cursor: hand;}

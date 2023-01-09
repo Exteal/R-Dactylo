@@ -1,0 +1,15 @@
+/* Colors in UPPERCASE to colour automatically */
+
+.DEFAULT { -fx-fill: black; }
+
+.RED { -fx-fill: red; }
+
+.GREEN { -fx-fill: green; }
+
+.BLUE { -fx-fill: cyan; }
+
+.item_selected { -fx-underline: true; -fx-fill:red; -fx-font-size: 20; -fx-cursor: hand;}
+
+.incorrect_word { -fx-fill: red; -fx-underline: true; }
+
+.correct_word { -fx-fill: green; -fx-underline: true; }

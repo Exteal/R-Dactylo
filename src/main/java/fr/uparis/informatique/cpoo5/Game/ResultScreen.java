@@ -1,26 +1,33 @@
-package fr.uparis.informatique.cpoo5.richtextdemo;
+package fr.uparis.informatique.cpoo5.Game;
 
 import org.fxmisc.richtext.StyleClassedTextArea;
 
+import home.Home;
 import javafx.scene.Scene;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
+/**
+ * Display of the results after a game <br>
+ * Contains speed, accuracy and consistency
+ * @author rh4
+ *
+ */
 public class ResultScreen {
 	
 	public void show_results(Stage stage, GameStats stats) {
 		VBox root = new VBox();
 		
-		StyleClassedTextArea speed_area = new StyleClassedTextArea();
-		StyleClassedTextArea accuracy_area = new StyleClassedTextArea();
-		StyleClassedTextArea consistency_area = new StyleClassedTextArea();
+		var speed_area = new StyleClassedTextArea();
+		var accuracy_area = new StyleClassedTextArea();
+		var consistency_area = new StyleClassedTextArea();
 		
-		speed_area.replaceText("Speed : " + stats.getSpeed());
-		accuracy_area.replaceText("Accuracy : " + stats.getAccuracy());
-		consistency_area.replaceText("Consistency : " + stats.getConsistency());
+		speed_area.replaceText("Speed : " + stats.getSpeed() + " wpm");
+		accuracy_area.replaceText("Accuracy : " + stats.getAccuracy() + " %");
+		consistency_area.replaceText("Consistency : " + stats.getConsistency() + " !!placeholder");
 		
-		StyleClassedTextArea return_home = new StyleClassedTextArea();
+		var return_home = new StyleClassedTextArea();
 		return_home.replaceText("Return home");
 		
 		return_home.setOnMouseClicked(e -> {
@@ -52,7 +59,7 @@ public class ResultScreen {
 
 		
 		Scene scene = new Scene(root, 500, 150);
-		scene.getStylesheets().add(getClass().getResource("style.css").toExternalForm());
+		scene.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
 		stage.setScene(scene);
 	}
 }
