@@ -37,7 +37,7 @@ public class ResultScreen {
 		});
 		
 		return_home.setOnMouseEntered(e -> {
-			return_home.setStyleClass(0, "Return home".length(), "item_selected");
+			return_home.setStyleClass(0, "Return home".length(), "itemSelected");
 			e.consume();
 		});
 		

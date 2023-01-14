@@ -18,7 +18,6 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.VBox;
-import javafx.stage.Popup;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 
@@ -130,16 +129,15 @@ public class PlaygroundMode extends AbstractGame {
 	 */
 	@Override
 	public ArrayList<Node> createComponents(Stage primaryStage, String text, List<AbstractWord> words_typed,
-			List<AbstractWord> next_words_to_type, List<AbstractWord> validated_words, StringTokenizer token, VBox root,
-			int stage_width) {
+			List<AbstractWord> next_words_to_type, List<AbstractWord> validated_words, StringTokenizer token, VBox root) {
 
-		var components = super.createComponents(primaryStage, text, words_typed, next_words_to_type, validated_words, token, root, stage_width);
+		var components = super.createComponents(primaryStage, text, words_typed, next_words_to_type, validated_words, token, root);
 
 		var lifes_label = createLifesLabel(primaryStage, token);
 		components.add(lifes_label);
 		
 		
-		var updatedTextArea = create_text_area(primaryStage, text, words_typed, next_words_to_type, validated_words, token, root, stage_width, lifes_label) ;
+		var updatedTextArea = create_text_area(primaryStage, text, words_typed, next_words_to_type, validated_words, token, root, lifes_label) ;
         setGameTextArea(updatedTextArea);
         
 		int gameAreaIdx = 1;
@@ -155,7 +153,9 @@ public class PlaygroundMode extends AbstractGame {
 		
 		lifes_label.addEventFilter(LifeLostEvent.LIFE_LOST , e -> {
 			lifes_number--;
-			if(lifes_number > 0) Platform.runLater(() -> { lifes_label.setText("Lifes : " + String.valueOf(lifes_number)); });
+			if(lifes_number > 0) {
+				getDisplay().updateLabel(lifes_label, "Lifes : " + String.valueOf(lifes_number));
+			}				
 			else {
 				while (token.hasMoreTokens()) token.nextToken();
 				endGame();
@@ -164,15 +164,14 @@ public class PlaygroundMode extends AbstractGame {
 		
 		lifes_label.addEventFilter(LifeGainedEvent.LIFE_GAINED , e -> {
 			lifes_number++;
-			Platform.runLater(() -> { lifes_label.setText("Lifes : " + String.valueOf(lifes_number)); });		
+			getDisplay().updateLabel(lifes_label, "Lifes : " + String.valueOf(lifes_number));
 		});
 		
 		return lifes_label;
 	}
 	
 	public StyleClassedTextArea create_text_area(Stage primaryStage, String text, List<AbstractWord> words_typed,
-			List<AbstractWord> next_words_to_type, List<AbstractWord> validated_words, StringTokenizer token, VBox root,
-			int stage_width, Label lifelabel) {
+			List<AbstractWord> next_words_to_type, List<AbstractWord> validated_words, StringTokenizer token, VBox root, Label lifelabel) {
 		
 		StyleClassedTextArea textArea = new StyleClassedTextArea();
         textArea.replaceText(text);
@@ -186,6 +185,8 @@ public class PlaygroundMode extends AbstractGame {
         } );
         
         textArea.setMaxWidth(stage_width);
+        textArea.setPrefHeight(stage_heigth);
+
         textArea.setWrapText(true);
         textArea.moveTo(0);
 		return textArea;
@@ -289,22 +290,20 @@ public class PlaygroundMode extends AbstractGame {
 		getAddWordsTimer().cancel();
 		scheduleTask(next_words, token, textArea, typed_words);
 		
-		Popup levelUpPopup = new Popup();
-		var speed = new Label("Level up!! \nSpeed : "+ get_time_between_words());
-		levelUpPopup.getContent().add(speed);
+		var content = "Level up!! \nSpeed : "+ get_time_between_words();
 		
 		Point2D anchorPoint = textArea.localToScreen(
 				textArea.getWidth(),
 				0
 		);
 		
-		levelUpPopup.show(getActualStage(), anchorPoint.getX(), anchorPoint.getY());
+		var pop = getDisplay().displayPopup(getActualStage(), content, anchorPoint.getX(), anchorPoint.getY());
 		
 		var tim = new Timer();
 		tim.schedule(new TimerTask() {
 			@Override
 			public void run() {
-				Platform.runLater(() -> {levelUpPopup.hide();}); 
+				getDisplay().hidePopup(pop);
 				tim.cancel();
 			}
 		}, 1000*2);

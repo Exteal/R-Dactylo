@@ -3,8 +3,7 @@ package home;
 import java.io.IOException;
 import java.net.InetAddress;
 
-import org.fxmisc.richtext.StyleClassedTextArea;
-
+import fr.uparis.informatique.cpoo5.Game.Game;
 import fr.uparis.informatique.cpoo5.Game.GameFactory;
 import fr.uparis.informatique.cpoo5.Game.GameModes;
 import fr.uparis.informatique.cpoo5.Game.MultiModeServer;
@@ -22,17 +21,26 @@ import javafx.stage.Stage;
  *
  */
 public class Home extends Application{
+	private HomeDisplay display;
 	
+	public HomeDisplay getDisplay() {
+		return display;
+	}
+
+
+	public void setDisplay(HomeDisplay display) {
+		this.display = display;
+	}
+
+
 	public static void main(String[] args) throws Exception {
 		Application.launch(args);
     }
 
 	
-	public StyleClassedTextArea create_menu_item(Stage stage, GameModes mode,  String name) {
-		StyleClassedTextArea item = new StyleClassedTextArea();
-		
-		item.replaceText(name);
-		
+	public Button create_menu_item(Stage stage, GameModes mode,  String name) {
+		Button item = new Button(name);
+				
 		item.setOnMouseClicked(e -> {
 				try {
 					var game = GameFactory.createGame(mode, null);
@@ -45,37 +53,43 @@ public class Home extends Application{
 		});
 		
 		item.setOnMouseEntered(e -> {
-			item.setStyleClass(0, name.length(), "item_selected");
+			item.getStyleClass().removeIf(style -> style.equals("itemNotSelected"));
+			item.getStyleClass().add("itemSelected");
 			e.consume();
 		});
 		
 		item.setOnMouseExited(e -> {
-			item.clearStyle(0, name.length());
+			item.getStyleClass().removeIf(style -> style.equals("itemSelected"));
+			item.getStyleClass().add("itemNotSelected");
+
 			e.consume();
 		});
 		
+		item.getStyleClass().add("defaultButton");
+		item.getStyleClass().add("itemNotSelected");
 		return item;
 	}
 	
-	public StyleClassedTextArea create_menu_item_multi(Stage stage, GameModes mode,  String name) {
-		StyleClassedTextArea item = new StyleClassedTextArea();
-		
-		item.replaceText(name);
-		
+	public Button create_menu_item_multi(Stage stage, GameModes mode,  String name) {
+		Button item = new Button(name);
+			
 		item.setOnMouseClicked(e -> {
-			displayMultiModeForm();		
+			getDisplay().displayMultiModeForm(createMultiModeForm());		
 		});
 		
 		item.setOnMouseEntered(e -> {
-			item.setStyleClass(0, name.length(), "item_selected");
+			item.getStyleClass().removeIf(style -> style.equals("itemNotSelected"));
+			item.getStyleClass().add("itemSelected");
 			e.consume();
 		});
 		
 		item.setOnMouseExited(e -> {
-			item.clearStyle(0, name.length());
+			item.getStyleClass().removeIf(style -> style.equals("itemSelected"));
+			item.getStyleClass().add("itemNotSelected");
 			e.consume();
 		});
 		
+		item.getStyleClass().add("itemNotSelected");
 		return item;
 	}
 	
@@ -84,6 +98,8 @@ public class Home extends Application{
 	public void start(Stage primaryStage) throws Exception {
 		
 		VBox root = new VBox();
+		setDisplay(new HomeDisplay());
+		root.getStyleClass().add("defaultStyle");
 		
 		var normal = create_menu_item(primaryStage, GameModes.NORMAL , "Normal");
 		var playground = create_menu_item(primaryStage, GameModes.PLAYGROUND , "PlayGround");
@@ -93,10 +109,11 @@ public class Home extends Application{
 		root.getChildren().add(normal);
 		root.getChildren().add(playground);
 		root.getChildren().add(multi);
-		
-		Scene scene = new Scene(root, 500, 150);
+		Scene scene = new Scene(root, Game.stage_width, Game.stage_heigth);
 		scene.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
+
 		primaryStage.setScene(scene);
+		primaryStage.setTitle("R-Dactylo");
 		primaryStage.show();
 	}
 
@@ -110,9 +127,11 @@ public class Home extends Application{
 	 */
 	private VBox createMultiModeForm() {
 		var box = new VBox();
+		box.getStyleClass().add("defaultStyle");
+		
 		var name = new TextField();
 		var ip = new TextField();
-		
+	
 		name.setPromptText("Enter your  name.");
 		ip.setPromptText("Enter the server address.");
 		
@@ -132,7 +151,6 @@ public class Home extends Application{
 				
 				else {
 					if(ip.getText() != null && !ip.getText().isEmpty()) {
-						System.out.println(ip.getText());
 						try {
 							var localhost = InetAddress.getLocalHost().toString().split("/")[0];
 							if (ip.getText().equals("localhost") || ip.getText().equals(localhost)) {
@@ -187,9 +205,5 @@ public class Home extends Application{
 		
 	}
 	
-	private void displayMultiModeForm() {				
-		Stage stage = new Stage();
-        stage.setScene(new Scene(createMultiModeForm()));
-        stage.showAndWait();
-	}
+	
 }

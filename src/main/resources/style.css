@@ -1,4 +1,4 @@
-/* Colors in UPPERCASE to colour automatically */
+/* Colors in UPPERCASE to colour words automatically */
 
 .DEFAULT { -fx-fill: black; }
 
@@ -8,8 +8,15 @@
 
 .BLUE { -fx-fill: cyan; }
 
-.item_selected { -fx-underline: true; -fx-fill:red; -fx-font-size: 20; -fx-cursor: hand;}
 
-.incorrect_word { -fx-fill: red; -fx-underline: true; }
+.defaultStyle { -fx-alignment:center; -fx-background-color:black;}
 
-.correct_word { -fx-fill: green; -fx-underline: true; }
+.defaultButton {-fx-padding:15px;}
+
+.itemNotSelected {-fx-underline: false; -fx-text-fill:white; -fx-background-color:black;  -fx-font-size: 25; -fx-cursor: default;}
+
+.itemSelected { -fx-underline: true; -fx-text-fill:red; -fx-background-color:black; -fx-font-size: 35; -fx-cursor: hand;}
+
+.incorrectWord { -fx-fill: red; -fx-underline: true; }
+
+.correctWord { -fx-fill: green; -fx-underline: true; }

@@ -16,7 +16,6 @@ import javafx.application.Platform;
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
-import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -33,12 +32,18 @@ import javafx.stage.WindowEvent;
  */
 public abstract class AbstractGame implements Game {
 	
-	public enum Direction {
-		FORWARD,
-		BACKWARDS;
-	}
 	
-    private boolean has_started = false;
+	
+	private GameDisplay display;
+    public GameDisplay getDisplay() {
+		return display;
+	}
+
+	public void setDisplay(GameDisplay display) {
+		this.display = display;
+	}
+
+	private boolean has_started = false;
     private int game_length_in_seconds = 30;
     private int useful_chars = 0;
     private int keys_pressed = 0;
@@ -143,12 +148,14 @@ public abstract class AbstractGame implements Game {
 	  */
     public void startTimer(VBox root) {
         Label lab = new Label();
-        
+        Timer timer_countdown = new Timer();
         int full_time = getGameLengthInSeconds();
-		lab.setText(String.valueOf(getGameLengthInSeconds()));
+        
+        
+        getDisplay().updateLabel(lab, String.valueOf(getGameLengthInSeconds()));
 		root.getChildren().add(1, lab);
 		
-        Timer timer_countdown = new Timer();
+        
         setGameTimer(timer_countdown);
         
 		timer_countdown.schedule(new TimerTask() {
@@ -156,8 +163,7 @@ public abstract class AbstractGame implements Game {
 			public void run() {
 				if(getGameLengthInSeconds() > 0) {
 					setGameLengthInSeconds(getGameLengthInSeconds() - 1);
-					
-					Platform.runLater(() -> {lab.setText(String.valueOf(getGameLengthInSeconds()));});
+					getDisplay().updateLabel(lab, String.valueOf(getGameLengthInSeconds()));
 				}
 				else {
 					timer_countdown.cancel();
@@ -193,24 +199,21 @@ public abstract class AbstractGame implements Game {
     	
     	if (last_word_typed.equals(word_to_type)) {
     		nb_chars_to_skip = 0;
-    		textArea.setStyleClass(textArea.getCaretPosition() - word_to_type.length(), textArea.getCaretPosition(), "correct_word");
+    		getDisplay().setStyle(textArea,  word_to_type.length(), "correctWord");
     	}
     	
     	else {
     		if(hasAdditionalChars(last_word_typed, word_to_type)) {
         		nb_chars_to_skip = 0;
-        		textArea.setStyleClass(textArea.getCaretPosition() - last_word_typed.length(), textArea.getCaretPosition(), "incorrect_word");
-        	}
+        		getDisplay().setStyle(textArea,  last_word_typed.length(), "incorrectWord");
+    		}
         	else {
         		nb_chars_to_skip = word_to_type.length() - last_word_typed.length();
-        		textArea.setStyleClass(textArea.getCaretPosition() - last_word_typed.length(), textArea.getCaretPosition(), "incorrect_word");
-        		
+        		getDisplay().setStyle(textArea,  last_word_typed.length(), "incorrectWord");
         	}
     	}
     	
-    	
-    	
-    	
+    	    	
     	textArea.moveTo(textArea.getCaretPosition() + nb_chars_to_skip +1);
     	words_typed_list.add(getFactory().createWord("", WordColor.DEFAULT));
    	
@@ -266,7 +269,7 @@ public abstract class AbstractGame implements Game {
 				if(wasUsefulChar(last_typed, next_to_type)) {
 					useful_chars--;
 				}
-				colourChar(textArea, "DEFAULT" , Direction.BACKWARDS);
+				getDisplay().colourChar(textArea, "DEFAULT" , Direction.BACKWARDS);
 				
 			}
 			
@@ -302,17 +305,7 @@ public abstract class AbstractGame implements Game {
     private boolean hasAdditionalChars(String word_typed, String word_to_type) {
     	return word_typed.length() > word_to_type.length();
     }
-    
-   
-        
-    private void colourChar (StyleClassedTextArea textArea, String color, Direction direction) {
-    	int char_in_text_index = textArea.getCaretPosition();
-    	switch(direction) {
-    		case FORWARD: textArea.setStyleClass(char_in_text_index, char_in_text_index+1, color ); break;
-    		case BACKWARDS: textArea.setStyleClass(char_in_text_index-1, char_in_text_index, color);
-    	}
-    }
-    
+       
     private void addCharToTyped(List<AbstractWord> words_typed, String ch) {
     	String word_to_add = "";
     	int idx = getLastIndex(words_typed);
@@ -339,8 +332,6 @@ public abstract class AbstractGame implements Game {
 			addNextWord(next_words_to_type, word);
 		}
 	}
-
-	
 	
 	private void initializeFirstWords(StyleClassedTextArea game_area, List<AbstractWord> next_words_to_type, StringTokenizer token) {
 		for (int i =0; i<3 ; i++) {
@@ -354,8 +345,8 @@ public abstract class AbstractGame implements Game {
 	}
 		
 	
-	private boolean addNextWord(List<AbstractWord> next_words_to_type, AbstractWord word) {
-		return next_words_to_type.add(word);
+	private void addNextWord(List<AbstractWord> next_words_to_type, AbstractWord word) {
+		next_words_to_type.add(word);
 	}
 	
 	
@@ -366,10 +357,9 @@ public abstract class AbstractGame implements Game {
 	}
 		
 	public ArrayList<Node> createComponents(Stage primaryStage, String text, List<AbstractWord> words_typed,
-			List<AbstractWord> next_words_to_type, List<AbstractWord> validated_words, StringTokenizer token, VBox root, int stage_width) {
+			List<AbstractWord> next_words_to_type, List<AbstractWord> validated_words, StringTokenizer token, VBox root) {
 		var label = createNameLabel(stage_width);
-		var textArea = createTextArea(primaryStage, text, words_typed, next_words_to_type, validated_words, token, root,
-				stage_width);
+		var textArea = createTextArea(primaryStage, text, words_typed, next_words_to_type, validated_words, token, root);
 		
 		
 		var list = new ArrayList<Node>();
@@ -377,7 +367,7 @@ public abstract class AbstractGame implements Game {
 		return list;
 	}
 
-	protected void colorWord (StyleClassedTextArea textArea, String word, WordColor color ,List<AbstractWord> next_words_to_type, List<AbstractWord> typed_words) {
+	public void colorWord (StyleClassedTextArea textArea, String word, WordColor color ,List<AbstractWord> next_words_to_type, List<AbstractWord> typed_words) {
 		int pos = textArea.getCaretPosition();
 		int idTyped = getLastIndex(typed_words);
 		int idNext = getLastIndex(next_words_to_type);
@@ -389,17 +379,14 @@ public abstract class AbstractGame implements Game {
 		if (pos == 0) offset =0;
 		int tmp = 0;
 		
-
 		for (var w : next_words_to_type) {
 			tmp += w.getWord().length() +1;
 		}
-	
-		
+			
 		tmp -= offset;
 		
-
 		final int nb_chars_to_skip = tmp;
-		Platform.runLater(() -> { textArea.setStyleClass(pos + nb_chars_to_skip, pos + nb_chars_to_skip + word.length() +1 , color.toString() );});
+		display.changeColor(textArea, pos + nb_chars_to_skip, word.length() , color);
 		
 		textArea.moveTo(pos);
 	}
@@ -417,8 +404,7 @@ public abstract class AbstractGame implements Game {
 	 * @return
 	 */
 	protected StyleClassedTextArea createTextArea(Stage primaryStage, String text, List<AbstractWord> words_typed,
-			List<AbstractWord> next_words_to_type, List<AbstractWord> validated_words, StringTokenizer token, VBox root,
-			int stage_width) {
+			List<AbstractWord> next_words_to_type, List<AbstractWord> validated_words, StringTokenizer token, VBox root) {
 		
 		StyleClassedTextArea textArea = new StyleClassedTextArea();
         textArea.replaceText(text);
@@ -436,6 +422,7 @@ public abstract class AbstractGame implements Game {
         } );
         
         textArea.setMaxWidth(stage_width);
+        textArea.setPrefHeight(stage_heigth);
         textArea.setWrapText(true);
         textArea.moveTo(0);
         
@@ -508,7 +495,7 @@ public abstract class AbstractGame implements Game {
 	        	
 	        	//int index= get_last_index(validated_words)
 	        	if(charTypedIsAdditional(words_typed, next_words_to_type)) {
-	        		insertToTextArea(textArea, char_typed);
+	        		display.insertToTextArea(textArea, char_typed);
 	        	}
 	        	
 	        	String alreadyTyped = words_typed.isEmpty() ? "" :  words_typed.get(getLastIndex(words_typed)).getWord();
@@ -516,13 +503,12 @@ public abstract class AbstractGame implements Game {
 
 	        	if (isRightChar(char_typed, alreadyTyped, wordToType)) {
 	        		useful_chars++;
-	    			colourChar(textArea, "GREEN", Direction.FORWARD);
+	    			getDisplay().colourChar(textArea, "GREEN", Direction.FORWARD);
 				}
 				else {
-					colourChar(textArea, "RED", Direction.FORWARD);
+					getDisplay().colourChar(textArea, "RED", Direction.FORWARD);
 				}
 	    		
-	        	System.out.println(textArea.getCaretPosition());
 	        	addCharToTyped(words_typed, char_typed);
 				textArea.moveTo(textArea.getCaretPosition() +1);
 	        	e.consume();        
@@ -537,33 +523,21 @@ public abstract class AbstractGame implements Game {
 	}
 
 	
-	private void insertToTextArea(StyleClassedTextArea area, String typed) {
-		int pos = area.getCaretPosition();
-		System.out.println(pos);
-		area.insertText(pos, typed);
-		area.moveTo(pos);
-	}
+	
 	
 	/**
 	 * Manages the game creation <br>
 	 * Creates components to display, data structures, initialize first words, and displays the game
 	 */
     public void initializeGame(Stage primaryStage) {
-    	WordsFactory fact = new WordsFactory();
-		setFactory(fact);
 		
-        String text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed molestie, arcu eget porttitor viverra, arcu felis iaculis augue, id tempus sem ipsum sit amet est. Nulla in iaculis eros. Nunc lectus tortor, rhoncus sit amet lectus ut, faucibus interdum ante. Cras vitae nibh ut purus tristique fringilla. Aenean vestibulum porta augue ut maximus. Integer rhoncus a neque non pretium. Curabitur aliquam eget tellus vel eleifend. Fusce dictum, felis vel semper egestas, diam nulla efficitur arcu, quis vestibulum diam nisl nec ante. Nullam lacus augue, consequat et lorem vel, condimentum tincidunt odio. Aenean diam risus, feugiat ut orci sed, dictum hendrerit neque.\r\n"
-        		+ "\r\n"
-        		+ "Duis a commodo quam. Phasellus nec nulla vitae risus mattis consequat sit amet non dui. Ut lacinia euismod mauris. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed laoreet dapibus ex, quis tempus eros ornare porta. Quisque porttitor metus sed sapien varius aliquam. Donec at tempor velit, vel ornare felis. Nunc iaculis mauris sit amet iaculis pharetra.\r\n"
-        		+ "\r\n"
-        		+ "Phasellus congue sit amet leo vitae feugiat. Phasellus ac ipsum a diam auctor hendrerit. Morbi condimentum magna mi, sit amet dapibus mi vulputate in. Quisque condimentum purus ut dignissim lacinia. Sed quis nibh vehicula, mollis quam iaculis, vehicula turpis. Nunc at est faucibus, mollis nisl eget, dictum enim. Phasellus sit amet augue tincidunt elit ullamcorper porttitor scelerisque eget urna. In sit amet sapien lectus. Duis eget aliquam sem, vitae posuere diam. Cras faucibus nisi a ante porttitor convallis. Aliquam quis erat molestie, interdum orci a, ultricies enim. Cras lobortis ut felis ut lobortis.\r\n"
-        		+ "\r\n"
-        		+ "Sed erat neque, hendrerit in quam dignissim, viverra facilisis quam. Morbi consequat ligula in nulla scelerisque gravida nec non augue. Aenean consectetur fermentum sapien et vehicula. Nullam scelerisque vitae lacus et sodales. Mauris id urna nec nunc bibendum pellentesque. Phasellus vel aliquet risus. In ultricies eu ante ac hendrerit. ";
-        
-        
+    	VBox root = new VBox();
+    	setFactory(new  WordsFactory());   
+        setDisplay(new GameDisplay());
         
         List<AbstractWord> words_typed = new ArrayList<>();
         setTyped(words_typed);
+        
         List<AbstractWord> next_words_to_type = new ArrayList<>();
         setNexts_words(next_words_to_type);
         
@@ -572,19 +546,18 @@ public abstract class AbstractGame implements Game {
         
         
         var token = new StringTokenizer(text, " ");
-        VBox root = new VBox();
+       
         
         var components = createComponents(primaryStage, text, words_typed, next_words_to_type,
-				validated_words, token, root, stage_width);
+				validated_words, token, root);
              
        
         initializeFirstWords(getGameTextArea(), getNexts_words(), token);
         components.forEach(e -> root.getChildren().add(e));
         
 
-        displayGame(primaryStage, root);
+        getDisplay().displayGame(primaryStage, root, stage_width, stage_heigth);
         
-        //closeProperly(primaryStage);
         primaryStage.setOnCloseRequest(t -> {closeProperly(t);});
     }
 
@@ -603,15 +576,7 @@ public abstract class AbstractGame implements Game {
     	}; 
     	
     }
-    
-	private void displayGame(Stage primaryStage, VBox root) {
-		Scene scene = new Scene(root, stage_width + 150, 150);
-        scene.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
-        primaryStage.setTitle("R-Dactylo");
-        primaryStage.setScene(scene);
-        primaryStage.show();
-	}
-    
+        
 	@Override
 	public void endGame() {
 		if(getGameTimer() != null) {
